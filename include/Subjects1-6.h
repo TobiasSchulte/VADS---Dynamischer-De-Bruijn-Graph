@@ -1,8 +1,8 @@
 // **************************************************************
 // *                                                            *
-// *  Subjects.h  --  Version 1.5                               *
+// *  Subjects.h  --  Version 1.6                               *
 // *                                                            *
-// *  (C) Christian Scheideler, 2009                            *
+// *  (C) Christian Scheideler, 2011                            *
 // *                                                            *
 // **************************************************************
 
@@ -168,7 +168,13 @@ Reserved subject commands (can ONLY be called within a subject):
 
 - int idle(Relay *r): is 0 if the local relay point r still has at least
   one message to process. Otherwise, it is 1.
+  
+- int indeg(Relay *r): returns number of incoming links into r
 
+- int outdeg(Relay *r): returns number of outgoing links of r (0 or 1)
+
+- Identity *extractIdentity(Relay *r): returns Identity that created Relay r
+  and kills r
 
 Reserved Relay variables and commands (can ONLY be accessed by subject owning
 relay point):
@@ -232,19 +238,19 @@ Background information and some tips:
 
 // maximum number of relay points; if beyond, then warning
 
-#define MAXRELAYS 40000
+#define MAXRELAYS 400000
 
 // maximum number of subjects; if beyond, then warning
 
-#define MAXSUBJECTS 10000
+#define MAXSUBJECTS 100000
 
 // maximum number of objects; if beyond, then warning
 
-#define MAXOBJECTS 40000
+#define MAXOBJECTS 400000
 
 // maximum number of messages; if beyond, then warning
 
-#define MAXMESSAGES 40000
+#define MAXMESSAGES 400000
 
 
 // =======================================================================
@@ -264,6 +270,7 @@ class _Link;      // contains link to relay point
 class _rLinks;    // list of relay pointers
 class _sLink;     // contains link to subject
 class _sLinks;    // list of subject pointers
+class _idLinks;   // list of identities
 
 // =======================================================================
 //  Definitions
@@ -316,10 +323,15 @@ class _sLinks;    // list of subject pointers
 #define wakeup(subject) \
     _wake((Subject *) this, subject)
 
-// freezes a subject
+// freezes a subject or relay
 
 #define freeze(subject) \
     _halt((Subject *) this, subject)
+
+// extracts identity and destroys relay
+
+#define extractIdentity(relay) \
+    _extract((Subject *) this, relay)
 
 // idle checks whether a subject still has messages
 
@@ -373,7 +385,7 @@ public:
 class Identity: public Object
 {
 public:
-  Relay *_base;   // base of identity (endpoint of relay path)
+  Relay *_base;    // base of identity (endpoint of relay path)
 
   // constructor of empty identity (cannot be used)
   Identity();
@@ -386,6 +398,9 @@ public:
 
   // copying of identity not allowed
   Identity(const Identity& d);
+  
+  // destructor
+  ~Identity();
 };
 
 
@@ -431,12 +446,15 @@ class Relay
 {
 public:
   ulong ID;                  // identification number
+  int _awake;                // 0: frozen, 1: awake
+  int _private;              // 0: public, 1: private
 
   Subject *_home;            // subject associated with relay point
   _rLinks *_iLinks;          // incoming connections
   Relay  *_oLink;            // outgoing connection
   Relay  *_base;             // base of outgoing connection
   _Queue *_oQueue;           // message queue
+  _idLinks *_identities;     // list of identities of relay
 
 
   // create new relay point
@@ -511,7 +529,7 @@ public:
 
   // set up subject
   virtual void _setup();
-
+  
   // processes a subject
   virtual int _process();
 
@@ -540,6 +558,9 @@ protected:
 
   // deletes relay point
   virtual int _kill(Subject *s, Relay *r);
+  
+  // deletes relay point and returns identity
+  Identity* _extract(Subject *s, Relay* &r);
 
   // s wakes up subject
   virtual int _wake(Subject *s, Subject *t);
@@ -561,6 +582,13 @@ protected:
 
   // subject checks whether r still has requests in its butter
   virtual int idle(Relay *r);
+  
+  // subject returns number of incoming links of r
+  virtual int indeg(Relay *r);
+
+  // subject returns number of outgoing links of r (0 or 1)
+  virtual int outdeg(Relay *r);
+
 };
 
 
@@ -798,6 +826,34 @@ public:
   }
 
 
+  int idle()
+  {
+    _Link *r;
+    int allidle;
+    
+    allidle = 1;
+    r = first;
+    while (r!=NULL && allidle) {
+      if (r->relay!=NULL)
+        allidle = r->relay->_oQueue->empty();
+      r = r->next;
+    }
+    return allidle;
+  }
+  
+    
+  int count()
+  {
+    _Link *r;
+    int i;
+    
+    r = first; i=0;
+    while (r!=NULL)
+      { i++; r=r->next; }
+    return i;
+  }
+
+
   void deleteRelays()
   {
     _Link *l;
@@ -955,6 +1011,23 @@ public:
 };
 
 
+// _idLinks allows identities to organize in a list
+
+class _idLinks
+{
+public:
+  _idLinks *prev;  // previous identity in id list
+  _idLinks *next;  // next identity in id list
+  Identity* id;
+
+  _idLinks(Identity *ident)
+  {
+    prev=NULL; next=NULL; id=ident;
+  }  
+};
+
+  
+
 // =======================================================================
 //   Object functions
 // =======================================================================
@@ -1035,14 +1108,16 @@ Object*  NONE = NULL;  // empty object
     _source = NULL;
     _sink = NULL;
     _base = NULL;
-    if (WARNING)
-      std::cout << "-- Warning! Creating empty identity.\n";
+    //if (WARNING)
+    //  std::cout << "-- Warning! Creating empty identity.\n";
   }
 
 
   // constructor of public identity of r
   Identity::Identity(Relay *r)
   {
+    _idLinks *idl;
+                           
     _source = NULL;
     _sink = NULL;
     _base = NULL;
@@ -1063,8 +1138,14 @@ Object*  NONE = NULL;  // empty object
         else {
           if (DEBUG)
             std::cout << "-- Creating public identity of " << r->ID << ".\n";
-            _source = r;
+            _source = r;               // set source and base
             _base = r->_base;
+            idl = new _idLinks(this);  // add identity at beginning of list
+            if (r->_identities->next!=NULL)
+              r->_identities->next->prev = idl;
+            idl->next = r->_identities->next;
+            idl->prev = r->_identities;
+            r->_identities->next = idl;
         }
       }
     }
@@ -1074,6 +1155,8 @@ Object*  NONE = NULL;  // empty object
   // constructor of private identity of r1 for r2
   Identity::Identity(Relay *r1, Relay *r2)
   {
+    _idLinks *idl;
+                           
     _source = NULL;
     _sink = NULL;
     _base = NULL;
@@ -1099,8 +1182,14 @@ Object*  NONE = NULL;  // empty object
           else {
             if (DEBUG)
               std::cout << "-- Creating private identity of relay " << r1->ID << " for relay " << r2->ID << ".\n";
-            _source = r1;        // create new identity
+            _source = r1;              // set source and base
             _base = r1->_base;
+            idl = new _idLinks(this);  // add identity at beginning of list
+            if (r1->_identities->next!=NULL)
+              r1->_identities->next->prev = idl;
+            idl->next = r1->_identities->next;
+            idl->prev = r1->_identities;
+            r1->_identities->next = idl;
             if (r2!=r2->_home->parent)
               _sink = r2->_base;
             else {
@@ -1122,6 +1211,28 @@ Object*  NONE = NULL;  // empty object
     _base = NULL;
     if (WARNING)
       std::cout << "-- Warning! Identity cannot be copied.\n";
+  }
+  
+  
+  // destructor
+  Identity::~Identity()
+  {
+    _idLinks *idl;
+    _idLinks *delidl;
+ 
+    if (_source!=NULL) { 
+      idl = _source->_identities;  // remove identity from id list
+      while (idl->next!=NULL && idl->next->id!=this)
+        idl = idl->next;
+      if (idl->next!=NULL) {
+        delidl = idl->next;
+        if (idl->next->next!=NULL)
+          idl->next->next->prev = idl;
+        idl->next = idl->next->next;
+        delete delidl;
+      }
+      else std::cout << "Error: Identity missing in list!\n";
+    }
   }
 
 
@@ -1248,12 +1359,12 @@ Cocoon *_Cocoon = NULL;   // temporary cocoon for transfer
     if (_home != NULL) {    // relay generated within subject?
       if (d==NULL) {
         if (WARNING)
-          std::cout << "-- Warning! Cannot establish connection from " << ID << " to NULL.\n";
+          std::cout << "-- Warning! Cannot establish connection from " << ID << " to NULL. (d==NULL)\n";
       }
       else {
         if (d->_source == NULL) {
           if (WARNING)
-            std::cout << "-- Warning! Cannot establish connection from " << ID << " to NULL.\n";
+            std::cout << "-- Warning! Cannot establish connection from " << ID << " to NULL. (d->_source==NULL)\n";
         }
         else {
           if (d->_base==NULL) {
@@ -1266,13 +1377,15 @@ Cocoon *_Cocoon = NULL;   // temporary cocoon for transfer
                 std::cout << "-- Warning! Identity of " << d->_source->ID << " not meant for " << ID << ".\n";
             }
             else {
-              _oLink = d->_source;     // connect to relay point
+              _oLink = d->_source;        // connect to relay point
               _oLink->_iLinks->add(this);
+              if (d->_sink==NULL) _private=0;
               _base = d->_base;        // base = d-base
               delete d;                // destroy identity
               d = NULL;
-               if (DEBUG)
+              if (DEBUG)
                 std::cout << "-- Creating relay point " << ID << " to " << _oLink->ID << " with base " << _base->ID << ".\n";
+              if (!(_oLink->_awake)) _oLink = NULL;
             }
           }
         }
@@ -1289,10 +1402,13 @@ Cocoon *_Cocoon = NULL;   // temporary cocoon for transfer
     if (_numRelays>MAXRELAYS && WARNING)
       std::cout << "-- Warning! More than " << MAXRELAYS << " relay points.\n";
 
+    _awake = 1;
+    _private = 1;
     _base = this;
     _oLink = NULL;
     _oQueue = new _Queue();
     _iLinks = new _rLinks();
+    _identities = new _idLinks(NULL);  // dummy element for _identities    
 
     if (_home == NULL) {
       if (WARNING && ID>0)
@@ -1370,6 +1486,8 @@ Cocoon *_Cocoon = NULL;   // temporary cocoon for transfer
   // destructor
   Relay::~Relay()
   {
+    _idLinks *idl;
+                 
     if (DEBUG)
       std::cout << "-- Relay " << ID << " deleted.\n";
     if (_oLink != NULL)
@@ -1382,6 +1500,13 @@ Cocoon *_Cocoon = NULL;   // temporary cocoon for transfer
     if (_home != NULL && _home->_Relays != NULL) {
       _home->_Relays->remove(this);
       _home->_activeRelays->remove(this);
+    }
+    while (_identities!=NULL) {
+      idl=_identities;
+      if (_identities->id!=NULL)
+        _identities->id->_source = NULL;
+      _identities = _identities->next;
+      delete idl;
     }
   }
 
@@ -1651,6 +1776,56 @@ Cocoon *_Cocoon = NULL;   // temporary cocoon for transfer
   }
 
 
+  // kill relay point r in subject s and return identity
+  Identity* Subject::_extract(Subject *s, Relay* &r)
+  {
+    Identity* id;
+    _idLinks *idl;
+    
+    id = NULL;
+    if (_activeSubject==NULL || (_parent==NULL && _debugID>0)) {
+      if (WARNING)
+        std::cout << "-- Warning! " << _debugID << "called 'delete' outside of the subjects environment.\n";
+    }
+    else {
+      if (r == NULL) {
+        if (WARNING)
+          std::cout << "-- Warning! " << _debugID << " cannot destruct NULL.\n";
+      }
+      else {
+        if (s != this) {
+          if (WARNING)
+            std::cout << "-- Warning! " << s->_debugID << " cannot call 'delete' for subject " << _debugID << ".\n";
+        }
+        else {
+          if (s != r->_home) {
+            if (WARNING)
+              std::cout << "-- Warning! " << _debugID << " cannot call 'delete' for relay " << r->ID << ".\n";
+          }
+          else {
+            id = new Identity;
+            id->_source = r->_oLink;
+            if (r->_private) id->_sink = _sink;
+                        else id->_sink = NULL;
+            id->_base = r->_base;
+            if (id->_source!=NULL) {
+              idl = new _idLinks(id);  // add identity at beginning of list
+              if (id->_source->_identities->next!=NULL)
+                id->_source->_identities->next->prev = idl;
+              idl->next = id->_source->_identities->next;
+              idl->prev = id->_source->_identities;
+              id->_source->_identities->next = idl;
+            }
+            r->_destruct();  // delete relay r
+            r=NULL;
+          }
+        }
+      }
+    }
+    return id;
+  }
+
+
   // kill subject t in subject s
   int Subject::_kill(Subject *s, Subject *t)
   {
@@ -1771,6 +1946,7 @@ Cocoon *_Cocoon = NULL;   // temporary cocoon for transfer
               std::cout << "-- Warning! " << _debugID << " cannot call 'wakeup' for relay " << r->ID << ".\n";
           }
           else {
+            r->_awake = 1;
             _activeRelays->add(r);  // wake up relay point r
             r->_iLinks->wake(r);    // wake up connections to r
             if (DEBUG)
@@ -1840,6 +2016,7 @@ Cocoon *_Cocoon = NULL;   // temporary cocoon for transfer
               std::cout << "-- Warning! " << _debugID << " cannot call 'freeze' for relay " << r->ID << ".\n";
           }
           else {
+            r->_awake = 0;
             _activeRelays->remove(r);  // freeze relay point r
             r->_iLinks->halt();        // freeze connections to r
             if (DEBUG)
@@ -1924,7 +2101,7 @@ Cocoon *_Cocoon = NULL;   // temporary cocoon for transfer
   }
 
 
-  // subject checks if it has no more messages
+  // subject checks if it has no more messages in queues
   int Subject::idle()
   {
     if (_activeSubject == NULL) {
@@ -1936,7 +2113,8 @@ Cocoon *_Cocoon = NULL;   // temporary cocoon for transfer
         if (WARNING)
           std::cout << "-- Warning! Subject " << _activeSubject->_debugID << " cannot call " << _debugID << "->idle().\n";
       }
-      else return _sink->_oQueue->empty();
+      else return _Relays->idle();
+        // return _sink->_oQueue->empty();
     }
     return 0;
   }
@@ -1956,6 +2134,49 @@ Cocoon *_Cocoon = NULL;   // temporary cocoon for transfer
             std::cout << "-- Warning! Subject " << _activeSubject->_debugID << " cannot call " << _debugID << "->idle().\n";
         }
         else return r->_oQueue->empty();
+      }
+    }
+    return 0;
+  }
+  
+  
+  // checks if Relay r has alive outgoing connection
+  int Subject::indeg(Relay *r)
+  {
+    if (_activeSubject == NULL) {
+      if (WARNING)
+        std::cout << "-- Warning! Method 'idle' called outside of the subjects environment.\n";
+    }
+    else {
+      if (r != NULL) {
+        if (_activeSubject != r->_home) {
+          if (WARNING)
+            std::cout << "-- Warning! Subject " << _activeSubject->_debugID << " cannot call " << _debugID << "->idle().\n";
+        }
+        else return r->_iLinks->count();
+      }
+    }
+    return 0;
+  }
+
+
+  // returns number of incoming connections of Relay r
+  int Subject::outdeg(Relay *r)
+  {
+    if (_activeSubject == NULL) {
+      if (WARNING)
+        std::cout << "-- Warning! Method 'idle' called outside of the subjects environment.\n";
+    }
+    else {
+      if (r != NULL) {
+        if (_activeSubject != r->_home) {
+          if (WARNING)
+            std::cout << "-- Warning! Subject " << _activeSubject->_debugID << " cannot call " << _debugID << "->idle().\n";
+        }
+        else {
+          if (r->_oLink==NULL) return 0;
+                          else return 1;
+        }
       }
     }
     return 0;
