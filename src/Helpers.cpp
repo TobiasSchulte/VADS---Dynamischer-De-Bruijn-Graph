@@ -12,3 +12,8 @@ void itoa(int n, char s[])
          s[i++] = '-';
      s[i] = '\0';
 }
+
+void output(char *str){
+	if(DEBUG_OUTPUT)
+		std::cout << str << '\n';
+}

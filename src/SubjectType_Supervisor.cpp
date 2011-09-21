@@ -24,27 +24,46 @@ Action Supervisor::Init(NumObj *numo){
 Action Supervisor::SetLink(IDPair *idop){
 	
 	ListObjects[count] = idop;
-	std::cout << "Object inserted. " << count << '\n';
+	NodeNames[count] = idop->ido1->num;
 	count++;
-	
 	
 	if(count == NODES*3){
 	
-		Relay *r;
-	
+		
 		for(int i = 0; i < NODES*3; i++){
-			r = new Relay(ListObjects[i]->ido1->id);
+			Nodes[i] = new Relay(ListObjects[i]->ido1->id);
 			
 			// periodically wakeup list objects
-			NumObj *numo = new NumObj(100);
-			r->call(List::Wakeup, numo);
+			NumObj *numo = new NumObj(10);
+			Nodes[i]->call(List::Wakeup, numo);
 			
-			if(i < NODES*3-1)
-				r->call(List::Insert, ListObjects[i+1]->ido2);
-				
-			//ListObjects[i] = new IDObj(extractIdentity(r));
-			std::cout << "Object inserted. " << i << '\n';
+			if(i % 3 == 0 && i < NODES*3-3)
+				Nodes[i]->call(List::Insert, ListObjects[i+3]->ido2);
+			
+			std::cout << "Node " << NodeNames[i] << ": on Index " << i << "\n";
+		
 		}
+		
+		NumObj *numo = new NumObj(3000);
+		call(Supervisor::Wakeup, numo);
 	}
 }
-Action Supervisor::Wakeup(NumObj *numo){}
+
+Action Supervisor::Wakeup(NumObj *numo){
+
+    if (numo->num > 0) {
+		numo->num--;
+		call(Supervisor::Wakeup, numo);
+    }
+    else {
+		// test Search
+		srand(time(0));
+		unsigned sourceIndex = NODES; // (((rand() % NODES)*3)+1);
+		unsigned destIndex =  NODES+1; // (((rand() % NODES)*3)+1);
+		std::cout << "Starting Search.\nFrom Node Index " << sourceIndex << " to Index " << destIndex << '\n';
+		RoutingInformation *r = new RoutingInformation(NodeNames[sourceIndex], NodeNames[destIndex] );
+
+		MessageObj *m = new MessageObj("bla", r);
+ 		Nodes[sourceIndex]->call(List::Search, m);
+    }
+}

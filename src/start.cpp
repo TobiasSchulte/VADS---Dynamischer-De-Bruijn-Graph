@@ -11,7 +11,11 @@
 #include "../include/sha1.h"
 #include "../include/Subjects1-6.h"
 
-#define NODES 10
+#define NODES 30
+
+#define DEBUG_OUTPUT true
+#define TUP true
+#define TDOWN false
 
 #include "Helpers.cpp"
 
@@ -29,7 +33,7 @@ int main()
 {
   	NumObj* num = new NumObj(10);
   	// start with creating a supervisor, run for (at most) 300 rounds
-  	runSubjects(Supervisor,num,6000);
-  	sys_pause();
+  	runSubjects(Supervisor,num,3000);
+  	//sys_pause();
 }
 

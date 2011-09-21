@@ -6,20 +6,56 @@ Action List::Init(NumObj *numo)
     delete numo;
     left = NULL;
     right = NULL;
+    
+    real = false;
+    
     in = new Relay;
     idp = new IDPair(new IDObj(num, new Identity(in)), new IDObj(num, new Identity(in)));
     parent->call(Node::SetLink, idp);
-    std::cout << "Node " << num << ": Hello World.\n";
+   
     
     IDObj *tidobj = new IDObj(num, new Identity(in));
     
     parent->call(Node::RegisterChild, tidobj);
+    std::cout << "Node " << num << ": Hello World."<< "\n";
 } 
 
 Action List::Wakeup(NumObj *numo)
 {
-    // check whether it's time to activate BuildList again
-    if (numo->num==0) BuildList(NULL);
+    // check whether it's time to activate Debruijn Probing (if real) and BuildList again
+    if (numo->num==0){
+    	
+    	if(real){
+			
+			ProbeObj *po0 = new ProbeObj(num >> 1, num, 									TDOWN, new Identity(in));
+			ProbeObj *po1 = new ProbeObj((num >> 1) | (1 << (8*sizeof(unsigned)-1)), num, 	TUP, new Identity(in));
+			
+			//start Probe to the left
+			if(left != NULL){
+				left->out->call(List::Probe, po0);
+			}
+			// Probe fails on first step
+			else{
+				IDObj *io = new IDObj(num, new Identity(in));
+				ChildLinkObj *clo = new ChildLinkObj(0, io);
+				std::cout << "Probe failed. From " << po0->sourceHash << " to " << po0->destinationHash << " (First Step)" << '\n';
+				parent->call(Node::EstablishChildLink, clo);
+			}
+			//start Probe to the right
+			if(right != NULL){
+				right->out->call(List::Probe, po1);
+			}
+			//Probe fails on first step
+			else{
+				IDObj *io = new IDObj(num, new Identity(in));
+				ChildLinkObj *clo = new ChildLinkObj(1, io);
+				std::cout << "Probe failed. From " << po1->sourceHash << " to " << po1->destinationHash << " (First Step)" << '\n';
+				parent->call(Node::EstablishChildLink, clo);
+			}
+		}
+    	
+    	BuildList(NULL);
+    }
     else {
 		numo->num--;
 		call(List::Wakeup, numo);
@@ -135,28 +171,138 @@ Action List::BuildList(IDObj *ido)
     }
 }
 
-
 Action List::Insert(IDObj *ido)
 {
     BuildList(ido);  // just connect to given reference
 }
 
-
-Action List::Search(NumObj *numo)
+Action List::Search(MessageObj *m)
 {
-    if (num==numo->num) 
-		std::cout << "Node " << num << ": message received.\n";
+    if (num==m->rInfo->destination) 
+		std::cout << "Node " << num << ": message received: " << m->msg << "\n";
     else {
-		if (numo->num <= left->num) {
-			std::cout << "Node " << num << ": forwarding message.\n";
-			left->out->call(List::Search, numo);
+    	//DeBruijn Routing
+    	
+    	std::cout << '\n' << '\n';
+		
+        std::cout << "Search reached Node "<< num << ", its " <<  (real?"REAL.":"VIRTUAL.") <<  '\n';
+		
+    	if(real && m->rInfo->hopCount < (8*(sizeof(unsigned)))){
+    		m->rInfo->hopCount++;
+    		m->rInfo->hasJustJumped = true;
+    		std::cout << "Increased hopCount to " << m->rInfo->hopCount << ", preparing for jump.\n";
+    		MessageWrapper *mw;
+    		unsigned selector = m->rInfo->hopNums[m->rInfo->hopCount] >> (8*(sizeof(unsigned))-1);
+    		mw = new MessageWrapper(selector, m);
+    		std::cout << "Using " << selector << "-DeBruijn-Edge." << '\n';
+    		std::cout << "Forwarding to Parent.\n";
+    		parent->call(Node::ForwardRoutingRequest, mw);
 		}
-		else {
-			if (numo->num >= right->num) {
-				std::cout << "Node " << num << ": forwarding message.\n";
-				right->out->call(List::Search, numo);
+		else if(m->rInfo->hasJustJumped)
+		{
+			std::cout << "Packet landed.\n";
+			std::cout << "Forwarding Search in List. Left is " << left << ", right is " << right << "\n";
+			
+			m->rInfo->hasJustJumped = false;
+			
+			if(m->rInfo->hopNums[m->rInfo->hopCount] == num){
+				std::cout << "Going to forward to the " << (m->rInfo->destination < num?"left":"right") << ".\n";
+			
+				if(m->rInfo->destination < num){
+					m->rInfo->travelDirection = TDOWN;
+					left->out->call(List::Search, m);
+				}
+				else{
+					m->rInfo->travelDirection = TUP;
+					right->out->call(List::Search, m);	
+				}
 			}
-			else std::cout << "Node " << num << ": message cannot be delivered.\n";
+			else{
+				std::cout << "Going to forward to the " << (m->rInfo->hopNums[m->rInfo->hopCount] < num?"left":"right") << ".\n";
+				
+				if(m->rInfo->hopNums[m->rInfo->hopCount] < num && left != NULL){
+					m->rInfo->travelDirection = TDOWN;
+					left->out->call(List::Search, m);
+				}
+				else if(right != NULL){
+					m->rInfo->travelDirection = TUP;
+					right->out->call(List::Search, m);
+				}
+				else{
+					m->rInfo->travelDirection = TDOWN;
+					left->out->call(List::Search, m);
+				}
+			}
 		}
-    }         
+		else
+		{
+			std::cout << "Packet has Direction.\n";
+			std::cout << "Forwarding Search in List. Left is " << left << ", right is " << right << "\n";
+			if((m->rInfo->travelDirection == TDOWN && left == NULL)||(m->rInfo->travelDirection == TUP && right == NULL)){
+				std::cout << "Cannot use given Direction.\n";
+				m->rInfo->travelDirection = !m->rInfo->travelDirection;
+			}
+			std::cout << "Going to forward to the " << (m->rInfo->travelDirection == TDOWN?"left":"right") << ".\n";
+			
+			if(m->rInfo->travelDirection == TDOWN)
+				left->out->call(List::Search, m);
+			else
+				right->out->call(List::Search, m);	
+			
+		}
+    }    
+}
+
+Action List::MakeReal(NumObj *dummy){
+
+	// dont use the dummy
+
+	real = true;
+	
+	std::cout << "Node " << num << ": I´m Real.\n";
+}
+
+Action List::Probe(ProbeObj *po){
+	
+	//Probe successfull
+	if(po->destinationHash == num){
+		//std::cout << "Probe successfull. From " << po->sourceHash << " to " << po->destinationHash << '\n';
+	}
+	//Probe is going to jump
+	else if(real && po->jump){
+		parent->call(Node::ForwardProbe, po);
+	}
+	//Probe fails
+	else if(
+			// because it travels up and theres no right neighbour
+			(po->travelDirection == TUP && right == NULL) || 
+			// because it travels down and theres no left neighbour
+			(po->travelDirection == TDOWN && left == NULL) || 
+			// because it travels up and it already bypassed the destination
+			(po->travelDirection == TUP && po->destinationHash < num) || 
+			// because it travels down and it already bypassed the destination
+			(po->travelDirection == TDOWN && po->destinationHash > num))
+	{
+		std::cout << "Probe failed. From " << po->sourceHash << " to " << po->destinationHash ;
+		std::cout << "(" << (po->travelDirection == TUP && right == NULL) << (po->travelDirection == TDOWN && left == NULL) << (po->travelDirection == TUP && po->destinationHash < num) << (po->travelDirection == TDOWN && po->destinationHash > num) << ")" << '\n';
+		Relay *r = new Relay(po->sender);
+		r->call(List::ProbeFailed, po);
+	}
+	// Forward Probe
+	else{
+		if(po->travelDirection == TUP)
+			right->out->call(List::Probe, po);
+		else
+			left->out->call(List::Probe, po);
+	}
+}
+
+Action List::ProbeFailed(ProbeObj *po){
+	IDObj *io = new IDObj(num, new Identity(in));
+	ChildLinkObj *clo;
+	if(po->destinationHash > num)
+		clo = new ChildLinkObj(1, io);
+	else
+		clo = new ChildLinkObj(0, io);
+	parent->call(Node::EstablishChildLink, clo);
 }
