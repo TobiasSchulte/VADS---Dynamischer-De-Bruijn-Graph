@@ -17,7 +17,7 @@ Action List::Init(NumObj *numo)
     IDObj *tidobj = new IDObj(num, new Identity(in));
     
     parent->call(Node::RegisterChild, tidobj);
-    std::cout << "Node " << num << ": Hello World."<< "\n";
+    std::cout << "Node " << num  << '\t' << '(' << dec2bin(num) << ')' << ": Hello World."<< "\n";
 } 
 
 Action List::Wakeup(NumObj *numo)
@@ -305,4 +305,6 @@ Action List::ProbeFailed(ProbeObj *po){
 	else
 		clo = new ChildLinkObj(0, io);
 	parent->call(Node::EstablishChildLink, clo);
+
+	delete po;
 }

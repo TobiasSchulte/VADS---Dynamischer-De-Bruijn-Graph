@@ -7,11 +7,15 @@
 
 #include <iostream>
 #include <ctime>
+#include <string>
 
 #include "../include/sha1.h"
 #include "../include/Subjects1-6.h"
 
 #define NODES 30
+
+#define SIMULATION_TIME 3000
+#define SUPERVISOR_WAKEUP 2000
 
 #define DEBUG_OUTPUT true
 #define TUP true
@@ -33,7 +37,7 @@ int main()
 {
   	NumObj* num = new NumObj(10);
   	// start with creating a supervisor, run for (at most) 300 rounds
-  	runSubjects(Supervisor,num,3000);
+  	runSubjects(Supervisor,num,SIMULATION_TIME);
   	//sys_pause();
 }
 

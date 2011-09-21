@@ -44,7 +44,7 @@ Action Supervisor::SetLink(IDPair *idop){
 		
 		}
 		
-		NumObj *numo = new NumObj(3000);
+		NumObj *numo = new NumObj(SUPERVISOR_WAKEUP);
 		call(Supervisor::Wakeup, numo);
 	}
 }

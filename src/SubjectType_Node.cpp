@@ -46,6 +46,7 @@ Action Node::EstablishChildLink(ChildLinkObj *co){
 		std::cout << "Using 1-DeBruijn Edge to connect " << num << " and " << ((num >> 1) | (1 << (8*sizeof(unsigned)-1))) << "." << '\n';
 		v1->out->call(List::Insert, co->ido);	
 	}
+	delete co;
 }
 
 Action Node::ForwardProbe(ProbeObj *po){
@@ -62,6 +63,7 @@ Action Node::ForwardProbe(ProbeObj *po){
 		po->travelDirection = TUP;
 		v0->out->call(List::Probe, po);
 	}
+
 }
 
 Action Node::ForwardRoutingRequest(MessageWrapper *mw){
