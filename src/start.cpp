@@ -27,7 +27,8 @@ TESTMODE defines the tests to be done:
 SEARCH - Test Search
 DELETE - Test Delete
 */
-#define TESTMODE DELETE
+#define TESTMODE SEARCH
+
 
 #define DEBUG_OUTPUT true
 #define PROBE_SUCCESS_OUTPUT false

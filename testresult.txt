@@ -1,0 +1,250 @@
+Starting Search.
+From Node 2415072325 to 29908032
+Node 29908032: message received: Text
+Node 29908032: message visited 22 and used 6 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 2019411840 to 368904422
+Node 368904422: message received: Text
+Node 368904422: message visited 137 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 367300798 to 2495349851
+Node 2495349851: message received: Text
+Node 2495349851: message visited 122 and used 27 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 2778125991 to 3164028608
+Node 3164028608: message received: Text
+Node 3164028608: message visited 124 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 1793167386 to 1518857397
+Node 1518857397: message received: Text
+Node 1518857397: message visited 15 and used 2 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 743684700 to 901046024
+Node 901046024: message received: Text
+Node 901046024: message visited 66 and used 18 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 2625422296 to 2942103956
+Node 2942103956: message received: Text
+Node 2942103956: message visited 93 and used 25 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 2714655235 to 2103670170
+Node 2103670170: message received: Text
+Node 2103670170: message visited 222 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 1768861339 to 1276182448
+Node 1276182448: message received: Text
+Node 1276182448: message visited 294 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 3249726795 to 1379233687
+Node 1379233687: message received: Text
+Node 1379233687: message visited 255 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 408230154 to 4197945527
+Node 4197945527: message received: Text
+Node 4197945527: message visited 79 and used 19 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 2713439704 to 1212186387
+Node 1212186387: message received: Text
+Node 1212186387: message visited 231 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 2436654260 to 3538130188
+Node 3538130188: message received: Text
+Node 3538130188: message visited 167 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 503007576 to 421341031
+Node 421341031: message received: Text
+Node 421341031: message visited 136 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 688308228 to 4041396720
+Node 4041396720: message received: Text
+Node 4041396720: message visited 31 and used 8 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 1424944652 to 1581273412
+Node 1581273412: message received: Text
+Node 1581273412: message visited 151 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 3648934114 to 3638457160
+Node 3638457160: message received: Text
+Node 3638457160: message visited 136 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 2033810934 to 76448636
+Node 76448636: message received: Text
+Node 76448636: message visited 73 and used 15 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 3000440712 to 873139475
+Node 873139475: message received: Text
+Node 873139475: message visited 51 and used 14 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 1983517498 to 160028638
+Node 160028638: message received: Text
+Node 160028638: message visited 82 and used 23 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 344094688 to 3030489812
+Node 3030489812: message received: Text
+Node 3030489812: message visited 30 and used 7 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 958307122 to 2068221759
+Node 2068221759: message received: Text
+Node 2068221759: message visited 34 and used 7 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 738095947 to 3317989183
+Node 3317989183: message received: Text
+Node 3317989183: message visited 5 and used 2 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 1419644199 to 3099083361
+Node 3099083361: message received: Text
+Node 3099083361: message visited 96 and used 24 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 1376921124 to 1187885573
+Node 1187885573: message received: Text
+Node 1187885573: message visited 130 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 2121024152 to 3385118108
+Node 3385118108: message received: Text
+Node 3385118108: message visited 45 and used 9 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 3454576553 to 565920062
+Node 565920062: message received: Text
+Node 565920062: message visited 110 and used 28 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 3335488811 to 1648746454
+Node 1648746454: message received: Text
+Node 1648746454: message visited 3 and used 1 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 3133541762 to 399647491
+Node 399647491: message received: Text
+Node 399647491: message visited 24 and used 6 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 2703814140 to 2749674801
+Node 2749674801: message received: Text
+Node 2749674801: message visited 139 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 3703066373 to 3564984736
+Node 3564984736: message received: Text
+Node 3564984736: message visited 41 and used 9 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 2345647163 to 1920106400
+Node 1920106400: message received: Text
+Node 1920106400: message visited 78 and used 24 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 3904724257 to 248291982
+Node 248291982: message received: Text
+Node 248291982: message visited 331 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 841760460 to 3389121063
+Node 3389121063: message received: Text
+Node 3389121063: message visited 5 and used 2 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 41519045 to 1790286109
+Node 1790286109: message received: Text
+Node 1790286109: message visited 9 and used 1 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 2936561483 to 4219204374
+Node 4219204374: message received: Text
+Node 4219204374: message visited 132 and used 17 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 3028581847 to 2970671165
+Node 2970671165: message received: Text
+Node 2970671165: message visited 52 and used 15 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 1436634223 to 2818855268
+Node 2818855268: message received: Text
+Node 2818855268: message visited 227 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 3949127011 to 888005719
+Node 888005719: message received: Text
+Node 888005719: message visited 267 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 1360122539 to 711546778
+Node 711546778: message received: Text
+Node 711546778: message visited 86 and used 19 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 2763397194 to 2339175450
+Node 2339175450: message received: Text
+Node 2339175450: message visited 266 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 2380351014 to 787389218
+Node 787389218: message received: Text
+Node 787389218: message visited 21 and used 4 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 2262912732 to 3031438858
+Node 3031438858: message received: Text
+Node 3031438858: message visited 57 and used 13 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 541411472 to 136257347
+Node 136257347: message received: Text
+Node 136257347: message visited 21 and used 5 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 1293462991 to 1426227789
+Node 1426227789: message received: Text
+Node 1426227789: message visited 7 and used 2 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 3001379195 to 3524355922
+Node 3524355922: message received: Text
+Node 3524355922: message visited 46 and used 15 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 1404587421 to 3470583171
+Node 3470583171: message received: Text
+Node 3470583171: message visited 10 and used 2 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 1930166692 to 2200994
+Node 2200994: message received: Text
+Node 2200994: message visited 127 and used 31 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 3697373343 to 1897174053
+Node 1897174053: message received: Text
+Node 1897174053: message visited 231 and used 32 DeBruijn Edges.
+---------------------------------------------
+Starting Search.
+From Node 716035869 to 1362822096
+Node 1362822096: message received: Text
+Node 1362822096: message visited 119 and used 26 DeBruijn Edges.
+---------------------------------------------
