@@ -51,7 +51,8 @@ Action Supervisor::SetLink(IDPair *idop){
 			NumObj *pnumo = new NumObj(PERIODIC_PROBE_TIME);
 			RealNodes[i]->call(List::StartProbe, pnumo);
 			
-			std::cout << "Real Node " << RealNodeNames[i] << ": on Index " << i << "\n";
+			if(DEBUG_OUTPUT)
+				std::cout << "Real Node " << RealNodeNames[i] << ": on Index " << i << "\n";
 		
 			if(i < realCount-1)
 				RealNodes[i]->call(List::Insert, RealListObjects[i+1]->ido2);
@@ -65,7 +66,8 @@ Action Supervisor::SetLink(IDPair *idop){
 			NumObj *numo = new NumObj(VIRTUAL_NODE_WAKEPUP);
 			VirtualNodes[i]->call(List::Wakeup, numo);
 			
-			std::cout << "Virtual Node " << VirtualNodeNames[i] << ": on Index " << i << "\n";
+			if(DEBUG_OUTPUT)
+				std::cout << "Virtual Node " << VirtualNodeNames[i] << ": on Index " << i << "\n";
 		}
 		
 		NumObj *numo = new NumObj(SUPERVISOR_WAKEUP);
