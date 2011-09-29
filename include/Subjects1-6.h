@@ -246,11 +246,11 @@ Background information and some tips:
 
 // maximum number of objects; if beyond, then warning
 
-#define MAXOBJECTS 400000
+#define MAXOBJECTS 40000
 
 // maximum number of messages; if beyond, then warning
 
-#define MAXMESSAGES 400000
+#define MAXMESSAGES 40000
 
 
 // =======================================================================

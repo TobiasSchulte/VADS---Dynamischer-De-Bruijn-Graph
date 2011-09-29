@@ -18,11 +18,13 @@ Action Supervisor::Init(NumObj *numo){
 		NumObj *tnum = new NumObj(message_digest[0]);
 		new(Node, tnum);
 	}
+	delete str;
 	
 }
 
 Action Supervisor::SetLink(IDPair *idop){
 	
+
 	ListObjects[count] = idop;
 	NodeNames[count] = idop->ido1->num;
 	count++;
@@ -32,9 +34,10 @@ Action Supervisor::SetLink(IDPair *idop){
 		
 		for(int i = 0; i < NODES*3; i++){
 			Nodes[i] = new Relay(ListObjects[i]->ido1->id);
-			
+			//delete ListObjects[i]->ido1;
+
 			// periodically wakeup list objects
-			NumObj *numo = new NumObj(10);
+			NumObj *numo = new NumObj(VIRTUAL_NODE_WAKEPUP);
 			Nodes[i]->call(List::Wakeup, numo);
 			
 			if(i % 3 == 0 && i < NODES*3-3)
@@ -61,9 +64,9 @@ Action Supervisor::Wakeup(NumObj *numo){
 		unsigned sourceIndex = NODES; // (((rand() % NODES)*3)+1);
 		unsigned destIndex =  NODES+1; // (((rand() % NODES)*3)+1);
 		std::cout << "Starting Search.\nFrom Node Index " << sourceIndex << " to Index " << destIndex << '\n';
-		RoutingInformation *r = new RoutingInformation(NodeNames[sourceIndex], NodeNames[destIndex] );
+		/*RoutingInformation *r = new RoutingInformation(NodeNames[sourceIndex], NodeNames[destIndex] );
 
 		MessageObj *m = new MessageObj("bla", r);
- 		Nodes[sourceIndex]->call(List::Search, m);
+ 		Nodes[sourceIndex]->call(List::Search, m);*/
     }
 }

@@ -1,21 +1,19 @@
 SubjectType(List)
 {
-  	unsigned num;
   	Relay *in;
   	ListRelay *left;
   	ListRelay *right;
-  	bool real;
+  	VirtualNodeInformation *vInfo;
   
 public:
   	FirstAction(List,Init)
 
-	Action Init(NumObj *numo);
+	Action Init(VirtualNodeInformation *vInfo);
 	Action Wakeup(NumObj *numo);
   	Action BuildList(IDObj *ido);
   	Action Insert(IDObj *ido);
   	Action Search(MessageObj *m);
 
-	Action MakeReal(NumObj *dummy);
 	Action Probe(ProbeObj *prob);
 	Action ProbeFailed(ProbeObj *po);
 

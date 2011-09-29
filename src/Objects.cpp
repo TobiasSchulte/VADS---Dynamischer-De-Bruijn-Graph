@@ -1,3 +1,15 @@
+ObjectType(VirtualNodeInformation){
+
+public:
+	unsigned hash;
+	bool belongsToRealNode;
+
+	VirtualNodeInformation(unsigned h, bool r){hash = h; belongsToRealNode = r;}
+
+};
+
+
+
 ObjectType(NumObj)
 {
 public:
@@ -25,7 +37,6 @@ public:
   Identity *id;
 
   IDObj(unsigned n, Identity *d) { num=n; id=d; }
-  //IDObj(Identity *d) {id=d; num=NULL; }
 };
 
 ObjectType(ChildLinkObj)

@@ -12,10 +12,11 @@
 #include "../include/sha1.h"
 #include "../include/Subjects1-6.h"
 
-#define NODES 30
+#define NODES 10
 
-#define SIMULATION_TIME 3000
-#define SUPERVISOR_WAKEUP 2000
+#define VIRTUAL_NODE_WAKEPUP 10
+#define SIMULATION_TIME 2000
+#define SUPERVISOR_WAKEUP 100
 
 #define DEBUG_OUTPUT true
 #define TUP true

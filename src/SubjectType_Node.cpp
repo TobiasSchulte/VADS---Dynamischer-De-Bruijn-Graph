@@ -1,14 +1,14 @@
 Action Node::Init(NumObj *numo){
 	
 	num = numo->num;
+	delete numo;
+	VirtualNodeInformation* vInfo_v0 = new VirtualNodeInformation(num >> 1, false);
+	VirtualNodeInformation* vInfo_v  = new VirtualNodeInformation(num, true);
+	VirtualNodeInformation* vInfo_v1 = new VirtualNodeInformation((num >> 1) | (1 << (8*sizeof(unsigned)-1)), false);
 	
-	NumObj* n0 = new NumObj(num >> 1);
-	NumObj* n  = new NumObj(num);
-	NumObj* n1 = new NumObj((num >> 1) | (1 << (8*sizeof(unsigned)-1)));
-	
-	new(List, n0);
-	new(List, n);
-	new(List, n1);
+	new(List, vInfo_v0);
+	new(List, vInfo_v);
+	new(List, vInfo_v1);
 }
 
 Action Node::SetLink(IDPair *idp){
@@ -18,17 +18,12 @@ Action Node::SetLink(IDPair *idp){
 
 Action Node::RegisterChild(IDObj *ido){
 
-	if(ido->num == num){
+	if(ido->num == num)
 		v = new ListRelay(ido);
-		NumObj *dummy = new NumObj(0);
-		v->out->call(List::MakeReal, dummy);
-	}
-	else if(ido->num == (num >> 1)){
+	else if(ido->num == (num >> 1))
 		v0 = new ListRelay(ido);
-	}
-	else if(ido->num == ((num >> 1) | (1 << (8*sizeof(unsigned)-1)))){
+	else if(ido->num == ((num >> 1) | (1 << (8*sizeof(unsigned)-1))))
 		v1 = new ListRelay(ido);
-	}
 	
 	if(v != NULL && v0 != NULL && v1 != NULL)
 		std::cout << "Node " << num << " ready." << '\n';
