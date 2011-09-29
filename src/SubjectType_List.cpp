@@ -348,7 +348,7 @@ Action List::Probe(ProbeObj *po){
 	//Probe successfull
 	if(po->destinationHash == vInfo->hash){
 
-		if(DEBUG_OUTPUT)
+		if(PROBE_SUCCESS_OUTPUT)
 			std::cout << "Probe successfull. From " << po->sourceHash << " to " << po->destinationHash << '\n';
 	}
 	//Probe is going to jump

@@ -14,10 +14,10 @@
 
 #define NODES 100
 
-#define VIRTUAL_NODE_WAKEPUP 10
+#define VIRTUAL_NODE_WAKEPUP 100
 #define SIMULATION_TIME 70000
 #define SUPERVISOR_WAKEUP 50000
-#define PERIODIC_PROBE_TIME 10
+#define PERIODIC_PROBE_TIME 100
 
 #define SEARCH 0
 #define DELETE 1
@@ -30,6 +30,8 @@ DELETE - Test Delete
 #define TESTMODE DELETE
 
 #define DEBUG_OUTPUT true
+#define PROBE_SUCCESS_OUTPUT false
+
 #define TUP true
 #define TDOWN false
 
