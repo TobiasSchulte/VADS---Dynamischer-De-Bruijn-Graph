@@ -228,7 +228,7 @@ Background information and some tips:
 
 // WARNING messages to user: 0:OFF, 1:ON
 
-#define WARNING 1
+#define WARNING 0
 
 // DEBUG messages to user: 0:OFF, 1:ON, 2:step-by-step
 // Relays (including subject relays) and messages are numbered consecutively,

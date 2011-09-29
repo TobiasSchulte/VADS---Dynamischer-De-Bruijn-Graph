@@ -68,8 +68,9 @@ ObjectType(IDPair)
 public:
 	IDObj *ido1;
 	IDObj *ido2;
+	bool real;
 	
-	IDPair(IDObj *i1, IDObj *i2) {ido1=i1; ido2=i2; }
+	IDPair(IDObj *i1, IDObj *i2, bool r) {ido1=i1; ido2=i2; real=r; }
 };
 
 ObjectType(RoutingInformation)
@@ -79,11 +80,13 @@ public:
 	unsigned source;
 	unsigned destination;
 	unsigned hopCount;
+	unsigned visitedNodes;
 	bool hasJustJumped;
 	bool travelDirection;
 	
 	RoutingInformation(unsigned s, unsigned d){
 		hopCount = 0;
+		visitedNodes = 0;
 		source = s;
 		destination = d;
 		hasJustJumped = false;

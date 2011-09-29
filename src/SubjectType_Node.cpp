@@ -33,12 +33,12 @@ Action Node::RegisterChild(IDObj *ido){
 Action Node::EstablishChildLink(ChildLinkObj *co){
 	//establish Link from v0 to v
 	if(co->childNo == 0){
-		std::cout << "Using 0-DeBruijn Edge to connect " << num << " and " << (num >> 1) << "." << '\n';
+		//std::cout << "Using 0-DeBruijn Edge to connect " << num << " and " << (num >> 1) << "." << '\n';
 		v0->out->call(List::Insert, co->ido);
 	}
 	//establish Link from v1 to v
 	else{
-		std::cout << "Using 1-DeBruijn Edge to connect " << num << " and " << ((num >> 1) | (1 << (8*sizeof(unsigned)-1))) << "." << '\n';
+		//std::cout << "Using 1-DeBruijn Edge to connect " << num << " and " << ((num >> 1) | (1 << (8*sizeof(unsigned)-1))) << "." << '\n';
 		v1->out->call(List::Insert, co->ido);	
 	}
 	delete co;

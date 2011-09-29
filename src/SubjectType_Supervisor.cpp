@@ -1,6 +1,7 @@
 Action Supervisor::Init(NumObj *numo){
 	
-	count = 0;
+	virtualCount = 0;
+	realCount = 0;
 	
 	srand(time(0));
 	char *str = new char[12];
@@ -25,26 +26,47 @@ Action Supervisor::Init(NumObj *numo){
 Action Supervisor::SetLink(IDPair *idop){
 	
 
-	ListObjects[count] = idop;
-	NodeNames[count] = idop->ido1->num;
-	count++;
 	
-	if(count == NODES*3){
+	//real Node
+	if(idop->real){
+		RealListObjects[realCount] = idop;
+		RealNodeNames[realCount] = idop->ido1->num;
+		realCount++;
+	}
+	//virtual Node
+	else{
+		VirtualListObjects[virtualCount] = idop;
+		VirtualNodeNames[virtualCount] = idop->ido1->num;
+		virtualCount++;
+	}
+	if(virtualCount+realCount == NODES*3){
 	
-		
-		for(int i = 0; i < NODES*3; i++){
-			Nodes[i] = new Relay(ListObjects[i]->ido1->id);
-			//delete ListObjects[i]->ido1;
-
-			// periodically wakeup list objects
+		//Wakeup Real Nodes
+		for(int i = 0; i < realCount; i++){
+			RealNodes[i] = new Relay(RealListObjects[i]->ido1->id);
+			
+			// wakeup list objects
 			NumObj *numo = new NumObj(VIRTUAL_NODE_WAKEPUP);
-			Nodes[i]->call(List::Wakeup, numo);
+			RealNodes[i]->call(List::Wakeup, numo);
+			// wakeup probing
+			NumObj *pnumo = new NumObj(PERIODIC_PROBE_TIME);
+			RealNodes[i]->call(List::StartProbe, pnumo);
 			
-			if(i % 3 == 0 && i < NODES*3-3)
-				Nodes[i]->call(List::Insert, ListObjects[i+3]->ido2);
-			
-			std::cout << "Node " << NodeNames[i] << ": on Index " << i << "\n";
+			std::cout << "Real Node " << RealNodeNames[i] << ": on Index " << i << "\n";
 		
+			if(i < realCount-1)
+				RealNodes[i]->call(List::Insert, RealListObjects[i+1]->ido2);
+		}	
+		
+		//Wakeup Virtual Nodes
+		for(int i = 0; i < virtualCount; i++){
+			VirtualNodes[i] = new Relay(VirtualListObjects[i]->ido1->id);
+			
+			// wakeup list objects
+			NumObj *numo = new NumObj(VIRTUAL_NODE_WAKEPUP);
+			VirtualNodes[i]->call(List::Wakeup, numo);
+			
+			std::cout << "Virtual Node " << VirtualNodeNames[i] << ": on Index " << i << "\n";
 		}
 		
 		NumObj *numo = new NumObj(SUPERVISOR_WAKEUP);
@@ -61,12 +83,12 @@ Action Supervisor::Wakeup(NumObj *numo){
     else {
 		// test Search
 		srand(time(0));
-		unsigned sourceIndex = NODES; // (((rand() % NODES)*3)+1);
-		unsigned destIndex =  NODES+1; // (((rand() % NODES)*3)+1);
+		unsigned sourceIndex = 0; // (((rand() % NODES)*3)+1);
+		unsigned destIndex =  1; // (((rand() % NODES)*3)+1);
 		std::cout << "Starting Search.\nFrom Node Index " << sourceIndex << " to Index " << destIndex << '\n';
-		/*RoutingInformation *r = new RoutingInformation(NodeNames[sourceIndex], NodeNames[destIndex] );
+		RoutingInformation *r = new RoutingInformation(RealNodeNames[sourceIndex], RealNodeNames[destIndex] );
 
 		MessageObj *m = new MessageObj("bla", r);
- 		Nodes[sourceIndex]->call(List::Search, m);*/
+ 		RealNodes[sourceIndex]->call(List::Search, m);
     }
 }

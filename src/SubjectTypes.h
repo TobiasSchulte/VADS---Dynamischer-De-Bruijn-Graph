@@ -16,6 +16,7 @@ public:
 
 	Action Probe(ProbeObj *prob);
 	Action ProbeFailed(ProbeObj *po);
+	Action StartProbe(NumObj *numo);
 
 };
 
@@ -45,10 +46,15 @@ public:
 
 SubjectType(Supervisor)
 {
-	IDPair* ListObjects[NODES*3];
-	unsigned NodeNames[NODES*3];
-	int count;
-	Relay* Nodes[NODES*3];
+	IDPair* RealListObjects[NODES];
+	unsigned RealNodeNames[NODES];
+	int realCount;
+	Relay* RealNodes[NODES];
+	
+	IDPair* VirtualListObjects[NODES*2];
+	unsigned VirtualNodeNames[NODES*2];
+	int virtualCount;
+	Relay* VirtualNodes[NODES*2];
 	
 public:
 	FirstAction(Supervisor, Init)

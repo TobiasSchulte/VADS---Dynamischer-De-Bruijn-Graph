@@ -11,7 +11,7 @@ Action List::Init(VirtualNodeInformation *nInfo)
     IDObj *tIdObj1 = new IDObj(vInfo->hash, ti1);
     IDObj *tIdObj2 = new IDObj(vInfo->hash, ti2);
 
-    idp = new IDPair(tIdObj1, tIdObj2);
+    idp = new IDPair(tIdObj1, tIdObj2, vInfo->belongsToRealNode);
 
     parent->call(Node::SetLink, idp);
    
@@ -24,9 +24,21 @@ Action List::Init(VirtualNodeInformation *nInfo)
 
 Action List::Wakeup(NumObj *numo)
 {
-    // check whether it's time to activate Debruijn Probing (if real) and BuildList again
+    // check whether it's time to activate BuildList again
     if (numo->num==0){
-    	
+    	BuildList(NULL);
+    }
+    else {
+		numo->num--;
+		call(List::Wakeup, numo);
+    }
+}
+
+Action List::StartProbe(NumObj *numo){
+
+
+    // check whether it's time to activate Debruijn Probing (if real)
+    if (numo->num==0){    	
     	if(vInfo->belongsToRealNode){
 			
 			ProbeObj *po0 = new ProbeObj(vInfo->hash >> 1, vInfo->hash, 									TDOWN, new Identity(in));
@@ -55,13 +67,19 @@ Action List::Wakeup(NumObj *numo)
 				parent->call(Node::EstablishChildLink, clo);
 			}
 		}
-    	
-    	BuildList(NULL);
+		
+		NumObj *pnumo = new NumObj(PERIODIC_PROBE_TIME);
+		call(List::StartProbe, pnumo);
     }
     else {
 		numo->num--;
-		call(List::Wakeup, numo);
+		call(List::StartProbe, numo);
     }
+
+
+
+
+
 }
 
 Action List::BuildList(IDObj *ido)
@@ -107,7 +125,7 @@ Action List::BuildList(IDObj *ido)
 			right->out->call(List::BuildList, tempido);
 		}
 		// prepare next timeout
-		counter = new NumObj(10);
+		counter = new NumObj(5);
 		call(List::Wakeup, counter);
     }
     else {
@@ -118,13 +136,13 @@ Action List::BuildList(IDObj *ido)
 			}
 			else {
 				if (ido->num > right->num) {    // ido beyond right link
-					std::cout << "Node " << vInfo->hash << ": forwarding " << ido->num << " to " << right->num << ".\n";
+					//std::cout << "Node " << vInfo->hash << ": forwarding " << ido->num << " to " << right->num << ".\n";
 					right->out->call(List::BuildList, ido);
 				}
 				else {
 					if (right->num > ido->num) {  // ido between node and right link
 						if (idle(right->out)) {
-							std::cout << "Node " << vInfo->hash << ": new right " << ido->num << ", forwarding " << right->num << ".\n";
+							//std::cout << "Node " << vInfo->hash << ": new right " << ido->num << ", forwarding " << right->num << ".\n";
 							tempido = new IDObj(right->num, extractIdentity(right->out));
 							delete right;
 							right = new ListRelay(ido);
@@ -147,13 +165,13 @@ Action List::BuildList(IDObj *ido)
 				}
 				else {
 					if (ido->num < left->num) {   // ido below left link
-						std::cout << "Node " << vInfo->hash << ": forwarding " << ido->num << " to " << left->num << ".\n";
+						//std::cout << "Node " << vInfo->hash << ": forwarding " << ido->num << " to " << left->num << ".\n";
 						left->out->call(List::BuildList, ido);
 					}
 					else {
 						if (left->num < ido->num) { // ido between node and left link
 							if (idle(left->out)) {
-								std::cout << "Node " << vInfo->hash << ": new left " << ido->num << ", forwarding " << left->num << ".\n";
+								//std::cout << "Node " << vInfo->hash << ": new left " << ido->num << ", forwarding " << left->num << ".\n";
 								tempido = new IDObj(left->num, extractIdentity(left->out));
 								delete left;
 								left = new ListRelay(ido);
@@ -180,25 +198,60 @@ Action List::Insert(IDObj *ido)
 
 Action List::Search(MessageObj *m)
 {
-    if (vInfo->hash==m->rInfo->destination)
+    if (vInfo->hash==m->rInfo->destination){
 		std::cout << "Node " << vInfo->hash << ": message received: " << m->msg << "\n";
+		std::cout << "Node " << vInfo->hash << ": message visited " << m->rInfo->visitedNodes << " and used " << m->rInfo->hopCount << " DeBruijn Edges." << "\n";
+	}
     else {
     	//DeBruijn Routing
+    	m->rInfo->visitedNodes++;
     	
     	std::cout << '\n' << '\n';
 		
         std::cout << "Search reached Node "<< vInfo->hash << ", its " <<  (vInfo->belongsToRealNode?"REAL.":"VIRTUAL.") <<  '\n';
 		
     	if(vInfo->belongsToRealNode && m->rInfo->hopCount < (8*(sizeof(unsigned)))){
-    		m->rInfo->hopCount++;
-    		m->rInfo->hasJustJumped = true;
-    		std::cout << "Increased hopCount to " << m->rInfo->hopCount << ", preparing for jump.\n";
-    		MessageWrapper *mw;
-    		unsigned selector = m->rInfo->hopNums[m->rInfo->hopCount] >> (8*(sizeof(unsigned))-1);
-    		mw = new MessageWrapper(selector, m);
-    		std::cout << "Using " << selector << "-DeBruijn-Edge." << '\n';
-    		std::cout << "Forwarding to Parent.\n";
-    		parent->call(Node::ForwardRoutingRequest, mw);
+    		if(m->rInfo->hopCount == 0){
+    			m->rInfo->hopCount++;
+    			m->rInfo->hasJustJumped = true;
+    			std::cout << "Increased hopCount to " << m->rInfo->hopCount << ", preparing for jump.\n";
+    			MessageWrapper *mw;
+    			unsigned selector = m->rInfo->hopNums[m->rInfo->hopCount] >> (8*(sizeof(unsigned))-1);
+    			mw = new MessageWrapper(selector, m);
+    			std::cout << "Using " << selector << "-DeBruijn-Edge." << '\n';
+    			std::cout << "Forwarding to Parent.\n";
+    			parent->call(Node::ForwardRoutingRequest, mw);
+    		}
+    		// von links, idealposition links -> springen
+    		// von rechts, idealposition rechts -> springen
+    		else if((m->rInfo->travelDirection == TUP   && vInfo->hash > m->rInfo->hopNums[m->rInfo->hopCount])
+    			||  (m->rInfo->travelDirection == TDOWN && vInfo->hash < m->rInfo->hopNums[m->rInfo->hopCount])){
+    			m->rInfo->hopCount++;
+    			m->rInfo->hasJustJumped = true;
+    			std::cout << "Increased hopCount to " << m->rInfo->hopCount << ", preparing for jump.\n";
+    			MessageWrapper *mw;
+    			unsigned selector = m->rInfo->hopNums[m->rInfo->hopCount] >> (8*(sizeof(unsigned))-1);
+    			mw = new MessageWrapper(selector, m);
+    			std::cout << "Using " << selector << "-DeBruijn-Edge." << '\n';
+    			std::cout << "Forwarding to Parent.\n";
+    			parent->call(Node::ForwardRoutingRequest, mw);
+    		}
+    		// von rechts, idealposition links -> weiterleiten
+    		// von links, idealposition rechts -> weiterleiten
+			else{
+				std::cout << "Packet has Direction.\n";
+				std::cout << "Forwarding Search in List. Left is " << left << ", right is " << right << "\n";
+				if((m->rInfo->travelDirection == TDOWN && left == NULL)||(m->rInfo->travelDirection == TUP && right == NULL)){
+					std::cout << "Cannot use given Direction.\n";
+					m->rInfo->travelDirection = !m->rInfo->travelDirection;
+				}
+				std::cout << "Going to forward to the " << (m->rInfo->travelDirection == TDOWN?"left":"right") << ".\n";
+				
+				if(m->rInfo->travelDirection == TDOWN)
+					left->out->call(List::Search, m);
+				else
+					right->out->call(List::Search, m);	
+			}
 		}
 		else if(m->rInfo->hasJustJumped)
 		{
@@ -259,7 +312,7 @@ Action List::Probe(ProbeObj *po){
 	
 	//Probe successfull
 	if(po->destinationHash == vInfo->hash){
-		std::cout << "Probe successfull. From " << po->sourceHash << " to " << po->destinationHash << '\n';
+		//std::cout << "Probe successfull. From " << po->sourceHash << " to " << po->destinationHash << '\n';
 	}
 	//Probe is going to jump
 	else if(vInfo->belongsToRealNode && po->jump){
@@ -276,8 +329,8 @@ Action List::Probe(ProbeObj *po){
 			// because it travels down and it already bypassed the destination
 			(po->travelDirection == TDOWN && po->destinationHash > vInfo->hash))
 	{
-		std::cout << "Probe failed. From " << po->sourceHash << " to " << po->destinationHash ;
-		std::cout << "(" << (po->travelDirection == TUP && right == NULL) << (po->travelDirection == TDOWN && left == NULL) << (po->travelDirection == TUP && po->destinationHash < vInfo->hash) << (po->travelDirection == TDOWN && po->destinationHash > vInfo->hash) << ")" << '\n';
+		//std::cout << "Probe failed. From " << po->sourceHash << " to " << po->destinationHash ;
+		//std::cout << "(" << (po->travelDirection == TUP && right == NULL) << (po->travelDirection == TDOWN && left == NULL) << (po->travelDirection == TUP && po->destinationHash < vInfo->hash) << (po->travelDirection == TDOWN && po->destinationHash > vInfo->hash) << ")" << '\n';
 		Relay *r = new Relay(po->sender);
 		r->call(List::ProbeFailed, po);
 	}
