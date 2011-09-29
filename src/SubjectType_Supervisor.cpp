@@ -2,7 +2,6 @@ Action Supervisor::Init(NumObj *numo){
 	
 	virtualCount = 0;
 	realCount = 0;
-	
 	srand(time(0));
 	char *str = new char[12];
 	
@@ -17,7 +16,7 @@ Action Supervisor::Init(NumObj *numo){
 		sha.Result(message_digest);
 		
 		NumObj *tnum = new NumObj(message_digest[0]);
-		new(Node, tnum);
+		nodeSubjectReferences[i] = new(Node, tnum);
 	}
 	delete str;
 	
@@ -81,14 +80,20 @@ Action Supervisor::Wakeup(NumObj *numo){
 		call(Supervisor::Wakeup, numo);
     }
     else {
-		// test Search
-		srand(time(0));
-		unsigned sourceIndex = 0; // (((rand() % NODES)*3)+1);
-		unsigned destIndex =  1; // (((rand() % NODES)*3)+1);
-		std::cout << "Starting Search.\nFrom Node Index " << sourceIndex << " to Index " << destIndex << '\n';
-		RoutingInformation *r = new RoutingInformation(RealNodeNames[sourceIndex], RealNodeNames[destIndex] );
+    	if(TESTMODE == SEARCH){
+			srand(time(0));
+			unsigned sourceIndex = 0;
+			unsigned destIndex =  1;
+			std::cout << "Starting Search.\nFrom Node " << RealNodeNames[sourceIndex] << " to " << RealNodeNames[destIndex] << '\n';
+			RoutingInformation *r = new RoutingInformation(RealNodeNames[sourceIndex], RealNodeNames[destIndex]);	
 
-		MessageObj *m = new MessageObj("bla", r);
- 		RealNodes[sourceIndex]->call(List::Search, m);
+			MessageObj *m = new MessageObj("Text", r);
+ 			RealNodes[sourceIndex]->call(List::Search, m);
+ 		}
+ 		else if(TESTMODE == DELETE){
+ 			delete(nodeSubjectReferences[0]);
+ 			std::cout << "Deleting Node." << '\n';
+			
+ 		}
     }
 }

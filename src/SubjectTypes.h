@@ -56,6 +56,8 @@ SubjectType(Supervisor)
 	int virtualCount;
 	Relay* VirtualNodes[NODES*2];
 	
+	Subject* nodeSubjectReferences[NODES];
+	
 public:
 	FirstAction(Supervisor, Init)
 	

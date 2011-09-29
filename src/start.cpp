@@ -19,6 +19,16 @@
 #define SUPERVISOR_WAKEUP 40000
 #define PERIODIC_PROBE_TIME 20
 
+#define SEARCH 0
+#define DELETE 1
+
+/*
+TESTMODE defines the tests to be done:
+SEARCH - Test Search
+DELETE - Test Delete
+*/
+#define TESTMODE DELETE
+
 #define DEBUG_OUTPUT true
 #define TUP true
 #define TDOWN false
